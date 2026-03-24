@@ -3,124 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Web3 Platform</title>
+    <title>Advanced Web3 Admin Panel</title>
     <!-- Ethers.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            --primary: #10b981; /* Emerald Green for Admin */
-            --bg: #0f172a;
-            --panel: #1e293b;
-            --text: #f8fafc;
-            --border: #334155;
+            --primary: #f3ba2f; /* Binance Yellow */
+            --primary-hover: #e5a91e;
+            --bg-dark: #0b0f19;
+            --panel-bg: #151a28;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #2a3241;
+            --success: #10b981;
+            --danger: #ef4444;
         }
+
         body {
-            margin: 0; font-family: 'Segoe UI', sans-serif;
-            background-color: var(--bg); color: var(--text);
+            margin: 0; font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-dark); color: var(--text-light);
+            overflow-x: hidden;
         }
-        /* Login Screen */
+
+        /* --- Login Screen --- */
         #login-section {
             display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh;
+            background: radial-gradient(circle at center, #1a2235 0%, var(--bg-dark) 100%);
         }
         .login-box {
-            background-color: var(--panel); padding: 2.5rem; border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; width: 100%; max-width: 400px;
+            background-color: rgba(21, 26, 40, 0.9); padding: 3rem; border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5); text-align: center; width: 100%; max-width: 450px;
+            border: 1px solid rgba(243, 186, 47, 0.2); backdrop-filter: blur(10px);
         }
-        /* Dashboard Layout */
-        #dashboard-section { display: none; padding: 20px; max-width: 1200px; margin: auto; }
-        header {
-            display: flex; justify-content: space-between; align-items: center;
-            background: var(--panel); padding: 15px 30px; border-radius: 12px; margin-bottom: 20px;
-            border: 1px solid var(--border);
+        .login-box i { font-size: 3rem; color: var(--primary); margin-bottom: 15px; }
+
+        /* --- Dashboard Layout --- */
+        #dashboard-section { display: none; display: flex; height: 100vh; }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 260px; background-color: var(--panel-bg); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; padding: 20px 0;
         }
-        .admin-badge { background: #059669; padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+        .logo { font-size: 1.5rem; font-weight: bold; text-align: center; color: var(--primary); margin-bottom: 30px; letter-spacing: 1px; }
+        .nav-item {
+            padding: 15px 25px; color: var(--text-muted); text-decoration: none;
+            display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.3s;
+        }
+        .nav-item:hover, .nav-item.active { background-color: rgba(243, 186, 47, 0.1); color: var(--primary); border-right: 3px solid var(--primary); }
+        .spacer { flex-grow: 1; }
+        
+        /* Main Content */
+        .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; background-color: var(--bg-dark); }
+        
+        /* Header */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .wallet-info { background: var(--panel-bg); padding: 10px 20px; border-radius: 30px; border: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+        .network-badge { background: rgba(243, 186, 47, 0.2); color: var(--primary); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
         
         /* Stats Grid */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: var(--panel); padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
-        .stat-card h3 { margin: 0; color: #94a3b8; font-size: 0.9rem; text-transform: uppercase; }
-        .stat-card p { margin: 10px 0 0 0; font-size: 1.8rem; font-weight: bold; color: var(--primary); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card {
+            background: var(--panel-bg); padding: 25px; border-radius: 16px; border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; transition: transform 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-5px); border-color: rgba(243, 186, 47, 0.5); }
+        .stat-info h3 { margin: 0; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-info p { margin: 10px 0 0 0; font-size: 2rem; font-weight: bold; color: var(--text-light); }
+        .stat-icon { font-size: 2.5rem; color: rgba(243, 186, 47, 0.2); }
 
-        /* Users Table */
-        .table-container { background: var(--panel); border-radius: 12px; padding: 20px; overflow-x: auto; border: 1px solid var(--border); }
+        /* Data Table */
+        .data-panel { background: var(--panel-bg); border-radius: 16px; padding: 25px; border: 1px solid var(--border); }
+        .data-panel h2 { margin-top: 0; margin-bottom: 20px; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
         table { width: 100%; border-collapse: collapse; text-align: left; }
         th, td { padding: 15px; border-bottom: 1px solid var(--border); }
-        th { color: #94a3b8; font-size: 0.9rem; text-transform: uppercase; }
+        th { color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+        tr:last-child td { border-bottom: none; }
         tr:hover { background-color: rgba(255,255,255,0.02); }
+        .status-badge { background: rgba(16, 185, 129, 0.2); color: var(--success); padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; }
         
-        /* Buttons */
-        button {
-            background-color: var(--primary); color: white; border: none; padding: 10px 20px;
-            border-radius: 8px; font-size: 1rem; cursor: pointer; transition: 0.3s; font-weight: bold;
+        /* Action Area (Input + Button) */
+        .payout-action { display: flex; gap: 10px; }
+        .amount-input {
+            width: 80px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white;
+            padding: 8px 12px; border-radius: 8px; outline: none; text-align: center; font-family: monospace;
         }
-        button:hover { background-color: #059669; }
-        .action-btn { background-color: #3b82f6; padding: 8px 15px; font-size: 0.9rem; }
-        .action-btn:hover { background-color: #2563eb; }
-        .logout-btn { background-color: #ef4444; }
-        .logout-btn:hover { background-color: #dc2626; }
-        
-        .status-msg { margin-top: 10px; font-size: 0.9rem; }
+        .amount-input:focus { border-color: var(--primary); }
+
+        /* Buttons */
+        .btn {
+            background-color: var(--primary); color: #000; border: none; padding: 12px 24px;
+            border-radius: 8px; font-size: 1rem; cursor: pointer; font-weight: bold; transition: 0.3s;
+        }
+        .btn:hover { background-color: var(--primary-hover); transform: scale(1.02); }
+        .btn-small { padding: 8px 15px; font-size: 0.9rem; border-radius: 6px; }
+        .btn-danger { background-color: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .btn-danger:hover { background-color: var(--danger); color: white; }
+
+        /* Toast Notification */
+        #toast {
+            position: fixed; bottom: 30px; right: 30px; background: var(--panel-bg); border-left: 4px solid var(--primary);
+            color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: flex; align-items: center; gap: 15px; transform: translateX(150%); transition: transform 0.4s ease; z-index: 1000;
+        }
+        #toast.show { transform: translateX(0); }
     </style>
 </head>
 <body>
 
-    <!-- Login Section -->
+    <!-- LOGIN SCREEN -->
     <div id="login-section">
         <div class="login-box">
-            <h1>Admin Portal</h1>
-            <p>Connect authorized admin wallet to access.</p>
-            <button id="connect-btn">Connect Admin Wallet</button>
-            <div id="login-error" style="color: #ef4444; margin-top: 15px;"></div>
+            <i class="fa-brands fa-ethereum"></i>
+            <h1 style="margin: 0 0 10px 0;">Admin Portal</h1>
+            <p style="color: var(--text-muted); margin-bottom: 30px;">Connect your wallet to access the control panel. This wallet will be set as the operational Admin.</p>
+            <button id="connect-btn" class="btn" style="width: 100%;"><i class="fa-solid fa-wallet"></i> Connect Wallet</button>
+            <div id="login-error" style="color: var(--danger); margin-top: 15px; font-size: 0.9rem;"></div>
         </div>
     </div>
 
-    <!-- Admin Dashboard -->
+    <!-- DASHBOARD -->
     <div id="dashboard-section">
-        <header>
-            <div>
-                <h2>Admin Control Panel <span class="admin-badge">ADMIN</span></h2>
-                <div style="font-size: 0.9rem; color: #94a3b8;">Connected: <span id="admin-address"></span></div>
-            </div>
-            <button id="logout-btn" class="logout-btn">Disconnect</button>
-        </header>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Admin USDT Balance (BSC)</h3>
-                <p id="admin-usdt">0.00 USDT</p>
-            </div>
-            <div class="stat-card">
-                <h3>Total Registered Users</h3>
-                <p id="total-users">0</p>
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo"><i class="fa-solid fa-shield-halved"></i> WEB3 ADMIN</div>
+            <div class="nav-item active"><i class="fa-solid fa-chart-pie"></i> Dashboard</div>
+            <div class="nav-item"><i class="fa-solid fa-users"></i> User Management</div>
+            <div class="nav-item"><i class="fa-solid fa-clock-rotate-left"></i> Transactions</div>
+            
+            <div class="spacer"></div>
+            
+            <div class="nav-item btn-danger" id="logout-btn" style="margin: 0 15px; justify-content: center; border-radius: 8px;">
+                <i class="fa-solid fa-right-from-bracket"></i> Disconnect
             </div>
         </div>
 
-        <div class="table-container">
-            <h3>Registered Users (Firebase Data)</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>User Wallet Address</th>
-                        <th>Status</th>
-                        <th>Last Login</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="users-table-body">
-                    <tr><td colspan="4" style="text-align: center;">Loading users from Firebase...</td></tr>
-                </tbody>
-            </table>
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <div>
+                    <h2 style="margin: 0;">Overview</h2>
+                    <p style="margin: 5px 0 0 0; color: var(--text-muted); font-size: 0.9rem;">Real-time platform statistics</p>
+                </div>
+                <div class="wallet-info">
+                    <span class="network-badge" id="network-status"><i class="fa-solid fa-circle-dot"></i> BSC Mainnet</span>
+                    <i class="fa-solid fa-wallet" style="color: var(--text-muted);"></i>
+                    <span id="admin-address" style="font-family: monospace; font-weight: bold;">0x...</span>
+                </div>
+            </header>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3>Admin USDT Balance</h3>
+                        <p id="admin-usdt">0.00 <span style="font-size: 1rem; color: var(--primary);">USDT</span></p>
+                    </div>
+                    <i class="fa-solid fa-coins stat-icon"></i>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3>Total Registered Users</h3>
+                        <p id="total-users">0</p>
+                    </div>
+                    <i class="fa-solid fa-users stat-icon"></i>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="data-panel">
+                <h2><i class="fa-solid fa-list"></i> Registered Users & Payouts</h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Wallet Address</th>
+                                <th>Status</th>
+                                <th>Joined / Last Seen</th>
+                                <th>Custom Payout Amount</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Fetching real-time data from Firebase...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div id="admin-status" class="status-msg" style="color: #f3ba2f; text-align: center; margin-top: 20px;"></div>
     </div>
 
-    <!-- Firebase Modules -->
+    <!-- Toast Notification -->
+    <div id="toast">
+        <i id="toast-icon" class="fa-solid fa-circle-info"></i>
+        <span id="toast-msg">Notification Message</span>
+    </div>
+
+    <!-- Firebase Configuration & Web3 Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-        // IMPORTANT: Use your actual Firebase Config here
+        // IMPORTANT: Replace with your secure Firebase Config
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY", 
             databaseURL: "https://fortune-2cb70-default-rtdb.asia-southeast1.firebasedatabase.app/",
@@ -129,10 +216,8 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        // --- CONFIGURATION ---
-        // Yahan par strictly apna Admin Wallet Address dalein (Lowercase mein)
-        const ALLOWED_ADMIN_ADDRESS = "0xyouradminwalletaddresshere".toLowerCase(); 
-        const USDT_CONTRACT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"; // BSC Mainnet USDT
+        // --- WEB3 CONFIGURATION ---
+        const USDT_CONTRACT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"; // BSC USDT
         const BSC_CHAIN_ID = '0x38';
 
         const minABI = [
@@ -147,101 +232,122 @@
         // UI Elements
         const loginSection = document.getElementById('login-section');
         const dashboardSection = document.getElementById('dashboard-section');
-        const connectBtn = document.getElementById('connect-btn');
-        const logoutBtn = document.getElementById('logout-btn');
         const loginError = document.getElementById('login-error');
-        const adminStatus = document.getElementById('admin-status');
+        const networkStatus = document.getElementById('network-status');
 
-        // 1. PERSISTENCE: Check if wallet is already connected on page load
+        // ==========================================
+        // 1. PERSISTENCE LOGIC (Keep logged in)
+        // ==========================================
         window.addEventListener('load', async () => {
-            if (window.ethereum) {
+            // Check if user manually disconnected previously
+            const isLoggedOut = localStorage.getItem('adminForceLoggedOut');
+            
+            if (window.ethereum && isLoggedOut !== 'true') {
                 try {
                     const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    // If MetaMask is unlocked and has accounts, auto-login
                     if (accounts.length > 0) {
-                        checkAndLoginAdmin(accounts[0]);
+                        await setupAdminEnvironment(accounts[0]);
                     }
                 } catch (error) {
-                    console.error("Persistence check failed:", error);
+                    console.error("Auto-login failed:", error);
                 }
             }
         });
 
-        // 2. Connect Wallet Button
-        connectBtn.addEventListener('click', async () => {
+        // ==========================================
+        // 2. MANUAL LOGIN LOGIC
+        // ==========================================
+        document.getElementById('connect-btn').addEventListener('click', async () => {
             if (typeof window.ethereum !== 'undefined') {
                 try {
+                    loginError.innerText = "Requesting connection...";
                     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    await checkAndLoginAdmin(accounts[0]);
+                    
+                    // Clear the force logout flag
+                    localStorage.removeItem('adminForceLoggedOut');
+                    
+                    await setupAdminEnvironment(accounts[0]);
                 } catch (error) {
-                    loginError.innerText = "Connection rejected.";
+                    loginError.innerText = "Connection rejected by user.";
                 }
             } else {
-                loginError.innerText = "Please install MetaMask!";
+                loginError.innerText = "MetaMask or TrustWallet not found!";
             }
         });
 
-        // 3. Verify Admin and Load Dashboard
-        async function checkAndLoginAdmin(address) {
-            // Security Check: Make sure only the allowed admin can access this page
-            if (address.toLowerCase() !== ALLOWED_ADMIN_ADDRESS) {
-                loginError.innerText = `Access Denied! Connected wallet (${address.substring(0,6)}...) is not the admin.`;
-                return;
-            }
-
+        // ==========================================
+        // 3. SETUP DASHBOARD & ETHERS
+        // ==========================================
+        async function setupAdminEnvironment(address) {
             adminAddress = address;
+            
+            // Switch UI
             loginSection.style.display = 'none';
-            dashboardSection.style.display = 'block';
-            document.getElementById('admin-address').innerText = address;
+            dashboardSection.style.display = 'flex';
+            
+            // Format address for header
+            document.getElementById('admin-address').innerText = `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
 
-            // Setup Ethers and Network
             provider = new ethers.BrowserProvider(window.ethereum);
             signer = await provider.getSigner();
             usdtContract = new ethers.Contract(USDT_CONTRACT_ADDRESS, minABI, signer);
 
-            // Ensure we are on BSC Network
+            // Force BSC Network
             try {
-                await window.ethereum.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: BSC_CHAIN_ID }],
-                });
+                const network = await provider.getNetwork();
+                if (network.chainId !== 56n) { // 56 is decimal for 0x38
+                    networkStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Wrong Network`;
+                    networkStatus.style.color = "var(--danger)";
+                    networkStatus.style.background = "rgba(239, 68, 68, 0.2)";
+                    
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: BSC_CHAIN_ID }],
+                    });
+                }
             } catch (e) {
-                console.log("Please switch to Binance Smart Chain manually.");
+                showToast("Please switch to Binance Smart Chain in your wallet.", "error");
             }
 
+            // Start Data Fetches
             updateAdminBalance();
-            fetchUsersFromFirebase();
+            fetchFirebaseUsers();
 
-            // Handle account change (if admin changes wallet in MetaMask)
+            // Listen for account changes
             window.ethereum.on('accountsChanged', (accounts) => {
-                if (accounts.length === 0 || accounts[0].toLowerCase() !== ALLOWED_ADMIN_ADDRESS) {
-                    handleLogout();
+                if (accounts.length === 0) {
+                    handleLogout(); // MetaMask locked
+                } else {
+                    setupAdminEnvironment(accounts[0]); // Account switched
                 }
             });
+            window.ethereum.on('chainChanged', () => window.location.reload());
         }
 
-        // 4. Update Admin Balance
+        // ==========================================
+        // 4. FETCH DATA
+        // ==========================================
         async function updateAdminBalance() {
             try {
                 const balance = await usdtContract.balanceOf(adminAddress);
                 const decimals = await usdtContract.decimals();
-                document.getElementById('admin-usdt').innerText = `${parseFloat(ethers.formatUnits(balance, decimals)).toFixed(2)} USDT`;
+                document.getElementById('admin-usdt').innerHTML = `${parseFloat(ethers.formatUnits(balance, decimals)).toFixed(2)} <span style="font-size: 1rem; color: var(--primary);">USDT</span>`;
             } catch (error) {
-                console.error("Error fetching balance:", error);
+                console.error("Balance fetch error:", error);
             }
         }
 
-        // 5. Fetch Users from Firebase Realtime Database
-        function fetchUsersFromFirebase() {
+        function fetchFirebaseUsers() {
             const usersRef = ref(database, 'users');
             
-            // Listen for real-time updates
             onValue(usersRef, (snapshot) => {
                 const data = snapshot.val();
                 const tbody = document.getElementById('users-table-body');
-                tbody.innerHTML = ''; // Clear table
+                tbody.innerHTML = ''; 
 
                 if (!data) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No users found.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No active users found.</td></tr>';
                     document.getElementById('total-users').innerText = '0';
                     return;
                 }
@@ -253,68 +359,121 @@
                     const user = data[wallet];
                     const tr = document.createElement('tr');
                     
-                    // Format Date
                     const dateObj = new Date(user.lastLogin || Date.now());
-                    const dateStr = dateObj.toLocaleDateString() + " " + dateObj.toLocaleTimeString();
+                    const dateStr = dateObj.toLocaleDateString() + " " + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
+                    // Formatting row with Custom Amount Input
                     tr.innerHTML = `
-                        <td style="font-family: monospace;">${wallet}</td>
-                        <td><span style="color: #10b981;">${user.status || 'Active'}</span></td>
-                        <td>${dateStr}</td>
+                        <td style="font-family: monospace; color: var(--text-muted);">${wallet.substring(0,8)}...${wallet.substring(wallet.length - 6)}</td>
+                        <td><span class="status-badge">${user.status || 'Active'}</span></td>
+                        <td style="font-size: 0.9rem;">${dateStr}</td>
                         <td>
-                            <button class="action-btn" data-wallet="${wallet}">Send 5 USDT</button>
+                            <input type="number" id="amt-${wallet}" class="amount-input" value="1.00" min="0.01" step="0.01"> USDT
+                        </td>
+                        <td>
+                            <button class="btn btn-small send-payout-btn" data-wallet="${wallet}">
+                                <i class="fa-solid fa-paper-plane"></i> Send
+                            </button>
                         </td>
                     `;
                     tbody.appendChild(tr);
                 });
 
-                // Attach Event Listeners to Payout Buttons
-                document.querySelectorAll('.action-btn').forEach(btn => {
+                // Attach Event Listeners to generated buttons
+                document.querySelectorAll('.send-payout-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
-                        const targetWallet = e.target.getAttribute('data-wallet');
-                        sendPayout(targetWallet, "5"); // Send 5 USDT example
+                        const targetWallet = e.currentTarget.getAttribute('data-wallet');
+                        const amountInput = document.getElementById(`amt-${targetWallet}`).value;
+                        
+                        if(amountInput <= 0 || isNaN(amountInput)) {
+                            showToast("Please enter a valid amount.", "error");
+                            return;
+                        }
+                        
+                        executeCustomPayout(targetWallet, amountInput.toString());
                     });
                 });
             });
         }
 
-        // 6. Manual Payout Function (Admin sends USDT to User)
-        // NOTE: This will open MetaMask for the Admin to confirm the transaction.
-        async function sendPayout(userWallet, amount) {
+        // ==========================================
+        // 5. EXECUTE PAYOUT (CUSTOM AMOUNT)
+        // ==========================================
+        async function executeCustomPayout(userWallet, amount) {
             try {
-                adminStatus.style.color = "#f3ba2f";
-                adminStatus.innerText = `Please confirm MetaMask transaction to send ${amount} USDT to ${userWallet.substring(0,6)}...`;
+                showToast(`Approve transaction to send ${amount} USDT...`, "info");
                 
                 const amountToSend = ethers.parseUnits(amount, 18); // 18 decimals for BSC USDT
                 
-                // Execute BEP-20 Transfer
+                // BEP-20 Transfer
                 const tx = await usdtContract.transfer(userWallet, amountToSend);
                 
-                adminStatus.innerText = `Transaction pending... Hash: ${tx.hash}`;
+                showToast(`Tx Sent! Waiting for block confirmation...`, "info");
                 
-                await tx.wait(); // Wait for blockchain confirmation
+                await tx.wait(); // Wait for mining
                 
-                adminStatus.style.color = "#10b981";
-                adminStatus.innerText = `Successfully sent ${amount} USDT to ${userWallet}`;
-                updateAdminBalance(); // Update admin balance after sending
+                showToast(`Successfully sent ${amount} USDT!`, "success");
+                updateAdminBalance(); // Refresh balance
                 
             } catch (error) {
                 console.error(error);
-                adminStatus.style.color = "#ef4444";
-                adminStatus.innerText = "Transaction failed or cancelled.";
+                if (error.code === 'ACTION_REJECTED') {
+                    showToast("Transaction cancelled by Admin.", "error");
+                } else {
+                    showToast("Transaction failed. Check balance.", "error");
+                }
             }
         }
 
-        // 7. Logout
+        // ==========================================
+        // 6. UTILITIES (Logout & Toast)
+        // ==========================================
+        document.getElementById('logout-btn').addEventListener('click', handleLogout);
+
         function handleLogout() {
+            // Set flag so it doesn't auto-login on refresh
+            localStorage.setItem('adminForceLoggedOut', 'true');
+            
             adminAddress = null;
             loginSection.style.display = 'flex';
             dashboardSection.style.display = 'none';
             loginError.innerText = "";
-            adminStatus.innerText = "";
         }
 
-        logoutBtn.addEventListener('click', handleLogout);
+        function showToast(message, type = "success") {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-msg');
+            const iconEl = document.getElementById('toast-icon');
+
+            msgEl.innerText = message;
+            
+            if (type === "success") {
+                toast.style.borderLeftColor = "var(--success)";
+                iconEl.className = "fa-solid fa-circle-check";
+                iconEl.style.color = "var(--success)";
+            } else if (type === "error") {
+                toast.style.borderLeftColor = "var(--danger)";
+                iconEl.className = "fa-solid fa-circle-exclamation";
+                iconEl.style.color = "var(--danger)";
+            } else {
+                toast.style.borderLeftColor = "var(--primary)";
+                iconEl.className = "fa-solid fa-spinner fa-spin";
+                iconEl.style.color = "var(--primary)";
+            }
+
+            toast.classList.add('show');
+            
+            // Auto hide after 4 seconds unless it's an info/loading message
+            if (type !== "info") {
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 4000);
+            }
+        }
+        
+        // Expose function globally if needed by injected scripts
+        window.hideToast = () => document.getElementById('toast').classList.remove('show');
+
     </script>
 </body>
 </html>
